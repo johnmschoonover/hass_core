@@ -19,7 +19,15 @@ import ssl
 import sys
 import threading
 from typing import TYPE_CHECKING, Any, cast
+import warnings
 from unittest.mock import AsyncMock, MagicMock, Mock, _patch, patch
+
+try:
+    from sqlalchemy.exc import SAWarning as _SQLAlchemySAWarning
+except ModuleNotFoundError:
+    _SQLAlchemySAWarning = None
+else:
+    warnings.filterwarnings("error", category=_SQLAlchemySAWarning)
 
 from aiohttp import client
 from aiohttp.resolver import AsyncResolver
