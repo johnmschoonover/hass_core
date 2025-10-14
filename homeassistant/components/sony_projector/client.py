@@ -6,12 +6,12 @@ import asyncio
 from dataclasses import dataclass
 from functools import partial
 import logging
-import socket
+import time
 from typing import Any, Callable
 
 import pysdcp_extended
 
-from .const import DISCOVERY_PORT, DISCOVERY_TIMEOUT
+from .const import CONTROL_PORT, DISCOVERY_PORT, DISCOVERY_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -184,34 +184,39 @@ def _discover_sync(timeout: float) -> list[DiscoveredProjector]:
     """Perform synchronous discovery on a background thread."""
 
     discovered: dict[str, DiscoveredProjector] = {}
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(timeout)
-    try:
-        sock.bind(("", DISCOVERY_PORT))
-    except OSError as err:
-        _LOGGER.debug("Unable to bind to discovery port: %s", err)
-        return []
+    deadline = time.monotonic() + timeout
 
-    try:
-        while True:
-            try:
-                data, addr = sock.recvfrom(1028)
-            except socket.timeout:
-                break
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
 
-            _, info = pysdcp_extended.process_SDAP(data)
-            if info is None:
-                continue
+        projector = pysdcp_extended.Projector(
+            udp_port=DISCOVERY_PORT,
+            tcp_port=CONTROL_PORT,
+        )
 
-            serial = info.serial_number
-            serial_str = str(serial) if serial is not None else None
-            discovered[addr[0]] = DiscoveredProjector(
-                host=addr[0],
-                model=info.product_name,
-                serial=serial_str,
-            )
-    finally:
-        sock.close()
+        try:
+            result = projector.find_projector(timeout=remaining)
+        except OSError as err:
+            _LOGGER.debug("Discovery socket error: %s", err)
+            break
+        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+            _LOGGER.debug("Unexpected discovery failure: %s", err)
+            break
+
+        if result is False:
+            break
+        if not projector.is_init or projector.info is None:
+            continue
+
+        serial = projector.info.serial_number
+        serial_str = str(serial) if serial is not None else None
+        discovered[projector.ip] = DiscoveredProjector(
+            host=projector.ip,
+            model=projector.info.product_name,
+            serial=serial_str,
+        )
 
     return list(discovered.values())
 
