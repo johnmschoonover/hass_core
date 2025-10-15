@@ -7,7 +7,12 @@ from datetime import timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, EVENT_HOMEASSISTANT_STARTED, Platform
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    EVENT_HOMEASSISTANT_STARTED,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.typing import ConfigType
@@ -17,7 +22,6 @@ from .client import ProjectorClient, ProjectorClientError, ProjectorState
 from .const import (
     CONF_MODEL,
     CONF_SERIAL,
-    CONF_TITLE,
     DATA_DISCOVERY,
     DEFAULT_NAME,
     DOMAIN,
@@ -45,9 +49,9 @@ async def _async_ensure_discovery_listener(hass: HomeAssistant) -> None:
 
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.MEDIA_PLAYER,
     Platform.SELECT,
-    Platform.BUTTON,
     Platform.SENSOR,
 ]
 
@@ -56,7 +60,7 @@ PLATFORMS: list[Platform] = [
 class SonyProjectorRuntimeData:
     """Runtime data stored for each config entry."""
 
-    coordinator: "SonyProjectorCoordinator"
+    coordinator: SonyProjectorCoordinator
     client: ProjectorClient
 
 
@@ -137,7 +141,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
             _LOGGER.warning(
                 "The YAML configuration for sony_projector is deprecated and will be "
-                "imported into a config entry. Please remove it from configuration.yaml."
+                "imported into a config entry. Please remove it from configuration.yaml"
             )
 
     return True

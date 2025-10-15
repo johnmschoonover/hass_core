@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from homeassistant.components.select import SelectEntity
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.select import SelectEntity
 
 from . import SonyProjectorConfigEntry
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN

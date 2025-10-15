@@ -3,11 +3,20 @@
 from __future__ import annotations
 
 from homeassistant import config_entries
+from homeassistant.components.sony_projector.client import (
+    DiscoveredProjector,
+    ProjectorClientError,
+)
+from homeassistant.components.sony_projector.const import (
+    CONF_MODEL,
+    CONF_SERIAL,
+    CONF_TITLE,
+    DEFAULT_NAME,
+    DOMAIN,
+)
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import FlowResultType
 
-from homeassistant.components.sony_projector.client import DiscoveredProjector, ProjectorClientError
-from homeassistant.components.sony_projector.const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 from tests.common import MockConfigEntry
 
 

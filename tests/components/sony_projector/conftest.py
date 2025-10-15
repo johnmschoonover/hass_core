@@ -7,10 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
-from tests.common import MockConfigEntry
-
 from homeassistant.components.sony_projector.client import ProjectorState
 from homeassistant.components.sony_projector.const import (
     CONF_MODEL,
@@ -20,6 +16,10 @@ from homeassistant.components.sony_projector.const import (
     DEFAULT_NAME,
     DOMAIN,
 )
+from homeassistant.const import CONF_HOST
+from homeassistant.core import HomeAssistant
+
+from tests.common import MockConfigEntry
 
 
 @pytest.fixture
@@ -59,7 +59,9 @@ def mock_projector_client(mock_projector_state: ProjectorState) -> MagicMock:
 
 
 @pytest.fixture
-def mock_client_class(mock_projector_client: MagicMock) -> Generator[MagicMock, None, None]:
+def mock_client_class(
+    mock_projector_client: MagicMock,
+) -> Generator[MagicMock]:
     """Patch the projector client constructor."""
 
     with patch(
@@ -76,7 +78,7 @@ def mock_client_class(mock_projector_client: MagicMock) -> Generator[MagicMock, 
 
 
 @pytest.fixture
-def mock_discovery() -> Generator[AsyncMock, None, None]:
+def mock_discovery() -> Generator[AsyncMock]:
     """Patch discovery for config flow tests."""
 
     with patch(
@@ -87,12 +89,11 @@ def mock_discovery() -> Generator[AsyncMock, None, None]:
 
 
 @pytest.fixture
-def mock_discovery_listener() -> Generator[AsyncMock, None, None]:
+def mock_discovery_listener() -> Generator[AsyncMock]:
     """Patch the passive discovery listener."""
 
     async def _start_listener(hass):
         hass.data.setdefault(DOMAIN, {})[DATA_DISCOVERY] = None
-        return None
 
     with patch(
         "homeassistant.components.sony_projector.async_start_listener",

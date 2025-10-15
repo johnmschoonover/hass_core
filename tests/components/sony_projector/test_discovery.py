@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import struct
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -22,17 +23,17 @@ def _sdap_payload(
 ) -> bytes:
     """Create a minimal SDCP discovery packet."""
 
-    import struct
-
     product_bytes = product.encode("ascii").ljust(12, b"\x00")
-    return (
-        b"PJ"  # id
-        + b"\x01\x00"  # version, category
-        + b"HOME"  # community
-        + product_bytes
-        + struct.pack(">I", serial)
-        + struct.pack(">H", 1)
-        + location.encode("ascii")
+    return b"".join(
+        [
+            b"PJ",  # id
+            b"\x01\x00",  # version, category
+            b"HOME",  # community
+            product_bytes,
+            struct.pack(">I", serial),
+            struct.pack(">H", 1),
+            location.encode("ascii"),
+        ]
     )
 
 

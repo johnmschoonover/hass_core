@@ -13,7 +13,12 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import callback
 
-from .client import DiscoveredProjector, ProjectorClient, ProjectorClientError, async_discover
+from .client import (
+    DiscoveredProjector,
+    ProjectorClient,
+    ProjectorClientError,
+    async_discover,
+)
 from .const import (
     CONF_MODEL,
     CONF_SERIAL,

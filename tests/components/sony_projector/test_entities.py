@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+from homeassistant.components.sony_projector.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-
-from homeassistant.components.sony_projector.const import DOMAIN
 
 
 async def test_select_entities(

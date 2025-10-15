@@ -7,12 +7,12 @@ import logging
 import socket
 from typing import Any
 
+import pysdcp_extended
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import discovery_flow
-
-import pysdcp_extended
 
 from .const import (
     CONF_MODEL,

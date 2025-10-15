@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 import logging
 import time
-from typing import Any, Callable
+from typing import Any
 
 import pysdcp_extended
 
@@ -84,7 +85,7 @@ class ProjectorClient:
                 timeout=DISCOVERY_TIMEOUT,
                 udp_port=DISCOVERY_PORT,
             )
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to retrieve projector information") from err
 
         self._model = info.get("model")
@@ -97,7 +98,7 @@ class ProjectorClient:
         try:
             is_on = await _run_in_executor(self._projector.get_power)
             current_input = await _run_in_executor(self._projector.get_input)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Failed to query projector state") from err
 
         picture_mute = await _call_optional(self._projector.get_muting)
@@ -137,7 +138,7 @@ class ProjectorClient:
 
         try:
             await _run_in_executor(self._projector.set_power, on)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set power state") from err
 
     async def async_set_input(self, source: str) -> None:
@@ -146,7 +147,7 @@ class ProjectorClient:
         hdmi_number = 1 if source.endswith("1") else 2
         try:
             await _run_in_executor(self._projector.set_HDMI_input, hdmi_number)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set projector input") from err
 
     async def async_set_picture_mute(self, mute: bool) -> None:
@@ -154,7 +155,7 @@ class ProjectorClient:
 
         try:
             await _run_in_executor(self._projector.set_muting, mute)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set picture muting") from err
 
     async def async_toggle_picture_mute(self) -> None:
@@ -278,6 +279,6 @@ async def _call_screen_set(
             pysdcp_extended.COMMANDS[command],
             options[option],
         )
-    except Exception as err:  # noqa: BLE001
+    except Exception as err:
         raise ProjectorClientError(f"Failed to set {command}") from err
 
