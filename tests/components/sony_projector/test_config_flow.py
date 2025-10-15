@@ -69,6 +69,18 @@ async def test_scan_flow_success(hass, mock_client_class, mock_projector_client,
         result["flow_id"], {"next_step_id": "scan"}
     )
 
+    assert result["type"] == FlowResultType.SHOW_PROGRESS
+    assert result["step_id"] == "scan"
+    assert result["progress_action"] == "listen_for_projectors"
+
+    await hass.async_block_till_done()
+
+    flow_id = result["flow_id"]
+    result = await hass.config_entries.flow.async_configure(flow_id)
+    assert result["type"] == FlowResultType.SHOW_PROGRESS_DONE
+
+    result = await hass.config_entries.flow.async_configure(flow_id)
+
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "scan"
 
@@ -91,6 +103,17 @@ async def test_scan_flow_no_devices(hass, mock_client_class, mock_projector_clie
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"next_step_id": "scan"}
     )
+
+    assert result["type"] == FlowResultType.SHOW_PROGRESS
+    assert result["step_id"] == "scan"
+
+    await hass.async_block_till_done()
+
+    flow_id = result["flow_id"]
+    result = await hass.config_entries.flow.async_configure(flow_id)
+    assert result["type"] == FlowResultType.SHOW_PROGRESS_DONE
+
+    result = await hass.config_entries.flow.async_configure(flow_id)
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {"base": "no_devices_found"}

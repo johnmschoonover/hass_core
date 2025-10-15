@@ -29,6 +29,9 @@
       "cannot_connect": "Failed to connect to the projector.",
       "no_devices_found": "No projectors were found. Try again."
     },
+    "progress": {
+      "listen_for_projectors": "Listening ({timeout}s) for Sony Projector"
+    },
     "abort": {
       "wrong_device": "The projector does not match the configuration being updated.",
       "already_configured": "This projector is already configured.",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 import logging
 from typing import Any
@@ -13,7 +14,14 @@ from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import callback
 
 from .client import DiscoveredProjector, ProjectorClient, ProjectorClientError, async_discover
-from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
+from .const import (
+    CONF_MODEL,
+    CONF_SERIAL,
+    CONF_TITLE,
+    DEFAULT_NAME,
+    DISCOVERY_TIMEOUT,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +32,14 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     _reauth_entry: config_entries.ConfigEntry | None = None
     _discovered: dict[str, DiscoveredProjector]
+    _discovery_task: asyncio.Task[list[DiscoveredProjector]] | None
+
+    def __init__(self) -> None:
+        """Initialize the Sony Projector config flow."""
+
+        super().__init__()
+        self._discovered = {}
+        self._discovery_task = None
 
     async def async_step_user(self, user_input: Mapping[str, Any] | None = None) -> config_entries.FlowResult:
         """Handle the start of the config flow."""
@@ -57,6 +73,45 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.FlowResult:
         """Handle discovery of projectors on the network."""
 
+        if user_input is not None:
+            return await self.async_step_scan_results(user_input)
+
+        if self._discovery_task is None:
+            self._discovery_task = self.hass.async_create_task(
+                async_discover(self.hass.loop, timeout=DISCOVERY_TIMEOUT)
+            )
+
+        if not self._discovery_task.done():
+            return self.async_show_progress(
+                step_id="scan",
+                progress_action="listen_for_projectors",
+                description_placeholders={"timeout": str(int(DISCOVERY_TIMEOUT))},
+                progress_task=self._discovery_task,
+            )
+
+        try:
+            discovered = await self._discovery_task
+        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+            _LOGGER.debug("Unexpected discovery failure: %s", err)
+            discovered = []
+        finally:
+            self._discovery_task = None
+
+        current_unique_ids = self._async_current_ids(include_ignore=False)
+        self._discovered = {}
+        for device in discovered:
+            unique_id = device.serial or device.host
+            if unique_id in current_unique_ids:
+                continue
+            self._discovered[device.host] = device
+
+        return self.async_show_progress_done(next_step_id="scan_results")
+
+    async def async_step_scan_results(
+        self, user_input: Mapping[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Present discovered projectors to the user."""
+
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -64,21 +119,13 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             device = self._discovered[selected]
             return await self._async_create_entry_from_host(device.host, device.model, "scan")
 
-        discovered = await async_discover(self.hass.loop)
-        current_unique_ids = self._async_current_ids(include_ignore=False)
-        filtered: dict[str, DiscoveredProjector] = {}
-        for device in discovered:
-            unique_id = device.serial or device.host
-            if unique_id in current_unique_ids:
-                continue
-            filtered[device.host] = device
-
-        if not filtered:
+        if not self._discovered:
             errors["base"] = "no_devices_found"
 
-        self._discovered = filtered
-
-        options = {host: _format_discovery_option(device) for host, device in filtered.items()}
+        options = {
+            host: _format_discovery_option(device)
+            for host, device in self._discovered.items()
+        }
 
         data_schema = vol.Schema(
             {vol.Required(CONF_HOST): vol.In(options) if options else str}
@@ -88,7 +135,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="scan",
             data_schema=data_schema,
             errors=errors,
-            description_placeholders={"count": str(len(filtered))},
+            description_placeholders={"count": str(len(self._discovered))},
         )
 
     async def async_step_import(self, user_input: Mapping[str, Any]) -> config_entries.FlowResult:
