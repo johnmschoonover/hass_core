@@ -23,6 +23,10 @@
         "data": {
           "host": "Projector"
         }
+      },
+      "confirm": {
+        "title": "Add Sony Projector",
+        "description": "Do you want to add {name} at {host}?"
       }
     },
     "error": {

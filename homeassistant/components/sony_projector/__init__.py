@@ -14,7 +14,16 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .client import ProjectorClient, ProjectorClientError, ProjectorState
-from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN, SCAN_INTERVAL_SECONDS
+from .const import (
+    CONF_MODEL,
+    CONF_SERIAL,
+    CONF_TITLE,
+    DATA_DISCOVERY,
+    DEFAULT_NAME,
+    DOMAIN,
+    SCAN_INTERVAL_SECONDS,
+)
+from .discovery import async_start_listener
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -79,7 +88,10 @@ class SonyProjectorCoordinator(DataUpdateCoordinator[ProjectorState]):
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Sony Projector integration."""
 
-    hass.data.setdefault(DOMAIN, {})
+    domain_data = hass.data.setdefault(DOMAIN, {})
+
+    if DATA_DISCOVERY not in domain_data:
+        await async_start_listener(hass)
 
     if (switch_configs := config.get(Platform.SWITCH.value)) is not None:
         for entry in switch_configs:

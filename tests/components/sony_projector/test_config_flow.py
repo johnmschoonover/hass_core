@@ -163,3 +163,62 @@ async def test_reauth_updates_entry(hass, mock_client_class, mock_projector_clie
 
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
+
+
+async def test_integration_discovery_flow_creates_entry(
+    hass, mock_client_class, mock_projector_client
+):
+    """Test confirming a passively discovered projector."""
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_INTEGRATION_DISCOVERY},
+        data={
+            CONF_HOST: "192.0.2.30",
+            CONF_SERIAL: "ABC123",
+            CONF_MODEL: "VPL-Detected",
+            CONF_TITLE: "Conference Room",
+        },
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "confirm"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={}
+    )
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_HOST] == "192.0.2.30"
+
+
+async def test_integration_discovery_flow_existing_entry(
+    hass, mock_client_class, mock_projector_client
+):
+    """Test passive discovery aborts when projector already configured."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "192.0.2.31",
+            CONF_SERIAL: "SERIAL123",
+            CONF_MODEL: "VPL-Test",
+            CONF_TITLE: DEFAULT_NAME,
+        },
+        unique_id="SERIAL123",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_INTEGRATION_DISCOVERY},
+        data={
+            CONF_HOST: "192.0.2.31",
+            CONF_SERIAL: "SERIAL123",
+            CONF_MODEL: "VPL-Test",
+            CONF_TITLE: "Office",
+        },
+    )
+
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
