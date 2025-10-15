@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 from homeassistant import config_entries
 from homeassistant.components.sony_projector.client import (
     DiscoveredProjector,
@@ -15,14 +17,18 @@ from homeassistant.components.sony_projector.const import (
     DOMAIN,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from tests.common import MockConfigEntry
 
 
 async def test_manual_flow_success(
-    hass, mock_client_class, mock_projector_client, mock_discovery
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+    mock_discovery: AsyncMock,
+) -> None:
     """Test configuring the projector manually."""
 
     result = await hass.config_entries.flow.async_init(
@@ -49,8 +55,11 @@ async def test_manual_flow_success(
 
 
 async def test_manual_flow_connection_error(
-    hass, mock_client_class, mock_projector_client, mock_discovery
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+    mock_discovery: AsyncMock,
+) -> None:
     """Test the manual flow handling connection errors."""
 
     mock_projector_client.async_get_state.side_effect = ProjectorClientError
@@ -71,8 +80,11 @@ async def test_manual_flow_connection_error(
 
 
 async def test_scan_flow_success(
-    hass, mock_client_class, mock_projector_client, mock_discovery
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+    mock_discovery: AsyncMock,
+) -> None:
     """Test discovering a projector and creating an entry."""
 
     mock_discovery.return_value = [
@@ -107,11 +119,16 @@ async def test_scan_flow_success(
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_HOST] == "192.0.2.13"
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()
 
 
 async def test_scan_flow_no_devices(
-    hass, mock_client_class, mock_projector_client, mock_discovery
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+    mock_discovery: AsyncMock,
+) -> None:
     """Test that scan handles empty results."""
 
     mock_discovery.return_value = []
@@ -136,9 +153,15 @@ async def test_scan_flow_no_devices(
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {"base": "no_devices_found"}
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()
 
 
-async def test_import_flow(hass, mock_client_class, mock_projector_client):
+async def test_import_flow(
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+) -> None:
     """Test importing a YAML configuration."""
 
     result = await hass.config_entries.flow.async_init(
@@ -149,9 +172,15 @@ async def test_import_flow(hass, mock_client_class, mock_projector_client):
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_HOST] == "192.0.2.14"
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()
 
 
-async def test_reauth_updates_entry(hass, mock_client_class, mock_projector_client):
+async def test_reauth_updates_entry(
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+) -> None:
     """Test that reauth updates an existing entry."""
 
     entry = MockConfigEntry(
@@ -182,11 +211,15 @@ async def test_reauth_updates_entry(hass, mock_client_class, mock_projector_clie
 
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()
 
 
 async def test_integration_discovery_flow_creates_entry(
-    hass, mock_client_class, mock_projector_client
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+) -> None:
     """Test confirming a passively discovered projector."""
 
     result = await hass.config_entries.flow.async_init(
@@ -209,11 +242,15 @@ async def test_integration_discovery_flow_creates_entry(
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_HOST] == "192.0.2.30"
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()
 
 
 async def test_integration_discovery_flow_existing_entry(
-    hass, mock_client_class, mock_projector_client
-):
+    hass: HomeAssistant,
+    mock_client_class: MagicMock,
+    mock_projector_client: MagicMock,
+) -> None:
     """Test passive discovery aborts when projector already configured."""
 
     entry = MockConfigEntry(
@@ -241,3 +278,5 @@ async def test_integration_discovery_flow_existing_entry(
 
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+    mock_client_class.assert_not_called()
+    mock_projector_client.async_get_state.assert_not_called()

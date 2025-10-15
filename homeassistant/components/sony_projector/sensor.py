@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import SonyProjectorConfigEntry
+from . import SonyProjectorConfigEntry, SonyProjectorCoordinator
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 
 
@@ -50,7 +50,12 @@ class SonyProjectorBaseSensor(CoordinatorEntity, SensorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, entry, coordinator, device_info: DeviceInfo) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the base sensor."""
 
         super().__init__(coordinator)
@@ -73,7 +78,12 @@ class SonyProjectorLampHoursSensor(SonyProjectorBaseSensor):
     _attr_native_unit_of_measurement = "h"
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
-    def __init__(self, entry, coordinator, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize lamp hour sensor."""
 
         super().__init__(entry, coordinator, device_info)
@@ -94,7 +104,12 @@ class SonyProjectorModelSensor(SonyProjectorBaseSensor):
     _attr_translation_key = "model"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, entry, coordinator, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the model sensor."""
 
         super().__init__(entry, coordinator, device_info)
@@ -115,7 +130,12 @@ class SonyProjectorSerialSensor(SonyProjectorBaseSensor):
     _attr_translation_key = "serial"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, entry, coordinator, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the serial sensor."""
 
         super().__init__(entry, coordinator, device_info)

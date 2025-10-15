@@ -13,7 +13,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import SonyProjectorConfigEntry
+from . import SonyProjectorConfigEntry, SonyProjectorCoordinator
+from .client import ProjectorClient
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 
 
@@ -43,7 +44,12 @@ class SonyProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         | MediaPlayerEntityFeature.SELECT_SOURCE
     )
 
-    def __init__(self, entry: SonyProjectorConfigEntry, coordinator, client) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        client: ProjectorClient,
+    ) -> None:
         """Initialize the media player entity."""
 
         super().__init__(coordinator)

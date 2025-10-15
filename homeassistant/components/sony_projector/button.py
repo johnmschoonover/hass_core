@@ -9,7 +9,8 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import SonyProjectorConfigEntry
+from . import SonyProjectorConfigEntry, SonyProjectorCoordinator
+from .client import ProjectorClient
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 
 
@@ -45,7 +46,13 @@ class SonyProjectorPictureMuteButton(CoordinatorEntity, ButtonEntity):
     _attr_has_entity_name = True
     _attr_translation_key = "picture_mute"
 
-    def __init__(self, entry, coordinator, client, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        client: ProjectorClient,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the button."""
 
         super().__init__(coordinator)

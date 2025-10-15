@@ -2,20 +2,26 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 from homeassistant.components.media_player import MediaPlayerState
+from homeassistant.components.sony_projector.client import ProjectorState
 from homeassistant.components.sony_projector.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from tests.common import MockConfigEntry
+
 
 async def test_media_player_state(
     hass: HomeAssistant,
-    init_integration,
-    mock_projector_client,
-    mock_projector_state,
+    init_integration: MockConfigEntry,
+    mock_projector_client: MagicMock,
+    mock_projector_state: ProjectorState,
 ) -> None:
     """Test media player state and commands."""
 
+    assert init_integration is not None
     ent_reg = er.async_get(hass)
     entity_id = ent_reg.async_get_entity_id(
         "media_player", DOMAIN, f"{mock_projector_state.serial}-media_player"

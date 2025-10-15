@@ -9,7 +9,8 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import SonyProjectorConfigEntry
+from . import SonyProjectorConfigEntry, SonyProjectorCoordinator
+from .client import ProjectorClient
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 
 
@@ -54,8 +55,8 @@ class SonyProjectorSelectBase(CoordinatorEntity, SelectEntity):
     def __init__(
         self,
         entry: SonyProjectorConfigEntry,
-        coordinator,
-        client,
+        coordinator: SonyProjectorCoordinator,
+        client: ProjectorClient,
         device_info: DeviceInfo,
     ) -> None:
         """Initialize the base select entity."""
@@ -75,7 +76,13 @@ class SonyProjectorAspectRatioSelect(SonyProjectorSelectBase):
 
     _attr_translation_key = "aspect_ratio"
 
-    def __init__(self, entry, coordinator, client, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        client: ProjectorClient,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the aspect ratio select entity."""
 
         super().__init__(entry, coordinator, client, device_info)
@@ -109,7 +116,13 @@ class SonyProjectorPictureModeSelect(SonyProjectorSelectBase):
 
     _attr_translation_key = "picture_mode"
 
-    def __init__(self, entry, coordinator, client, device_info) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator: SonyProjectorCoordinator,
+        client: ProjectorClient,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the picture mode select entity."""
 
         super().__init__(entry, coordinator, client, device_info)

@@ -96,7 +96,7 @@ def mock_discovery() -> Generator[AsyncMock]:
 def mock_discovery_listener() -> Generator[AsyncMock]:
     """Patch the passive discovery listener."""
 
-    async def _start_listener(hass):
+    async def _start_listener(hass: HomeAssistant) -> None:
         hass.data.setdefault(DOMAIN, {})[DATA_DISCOVERY] = None
 
     with patch(
