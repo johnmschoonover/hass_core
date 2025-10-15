@@ -33,6 +33,8 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     _reauth_entry: config_entries.ConfigEntry | None = None
     _discovered: dict[str, DiscoveredProjector]
     _discovery_task: asyncio.Task[list[DiscoveredProjector]] | None
+    _pending_discovery: DiscoveredProjector | None
+    _pending_discovery_title: str | None
 
     def __init__(self) -> None:
         """Initialize the Sony Projector config flow."""
@@ -40,6 +42,8 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         super().__init__()
         self._discovered = {}
         self._discovery_task = None
+        self._pending_discovery = None
+        self._pending_discovery_title = None
 
     async def async_step_user(self, user_input: Mapping[str, Any] | None = None) -> config_entries.FlowResult:
         """Handle the start of the config flow."""
@@ -136,6 +140,57 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=data_schema,
             errors=errors,
             description_placeholders={"count": str(len(self._discovered))},
+        )
+
+    async def async_step_integration_discovery(
+        self, discovery_info: Mapping[str, Any]
+    ) -> config_entries.FlowResult:
+        """Handle passive SDCP discovery."""
+
+        host = discovery_info[CONF_HOST]
+        model = discovery_info.get(CONF_MODEL)
+        serial = discovery_info.get(CONF_SERIAL)
+        title = discovery_info.get(CONF_TITLE)
+
+        device = DiscoveredProjector(host=host, model=model, serial=serial)
+        unique_id = serial or host
+        await self.async_set_unique_id(unique_id, raise_on_progress=False)
+        self._abort_if_unique_id_in_progress(updates={CONF_HOST: host})
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host})
+        self._async_abort_entries_match({CONF_HOST: host})
+
+        self._pending_discovery = device
+        self._pending_discovery_title = title or model
+
+        self.context["title_placeholders"] = {"name": title or model or DEFAULT_NAME}
+
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: Mapping[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Confirm adding a discovered projector."""
+
+        assert self._pending_discovery is not None
+
+        if user_input is None:
+            suggested = (
+                self._pending_discovery_title
+                or self._pending_discovery.model
+                or DEFAULT_NAME
+            )
+            return self.async_show_form(
+                step_id="confirm",
+                description_placeholders={
+                    "name": suggested,
+                    "host": self._pending_discovery.host,
+                },
+            )
+
+        return await self._async_create_entry_from_host(
+            self._pending_discovery.host,
+            self._pending_discovery_title or self._pending_discovery.model,
+            "confirm",
         )
 
     async def async_step_import(self, user_input: Mapping[str, Any]) -> config_entries.FlowResult:

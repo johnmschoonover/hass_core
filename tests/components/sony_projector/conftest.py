@@ -16,6 +16,7 @@ from homeassistant.components.sony_projector.const import (
     CONF_MODEL,
     CONF_SERIAL,
     CONF_TITLE,
+    DATA_DISCOVERY,
     DEFAULT_NAME,
     DOMAIN,
 )
@@ -86,6 +87,21 @@ def mock_discovery() -> Generator[AsyncMock, None, None]:
 
 
 @pytest.fixture
+def mock_discovery_listener() -> Generator[AsyncMock, None, None]:
+    """Patch the passive discovery listener."""
+
+    async def _start_listener(hass):
+        hass.data.setdefault(DOMAIN, {})[DATA_DISCOVERY] = None
+        return None
+
+    with patch(
+        "homeassistant.components.sony_projector.async_start_listener",
+        AsyncMock(side_effect=_start_listener),
+    ) as listener:
+        yield listener
+
+
+@pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
     """Return a mocked config entry for the integration."""
 
@@ -106,6 +122,7 @@ async def init_integration(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_client_class: MagicMock,
+    mock_discovery_listener: AsyncMock,
 ) -> MockConfigEntry:
     """Set up the Sony Projector integration for testing."""
 
