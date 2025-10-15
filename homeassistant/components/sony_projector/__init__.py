@@ -7,7 +7,7 @@ from datetime import timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, Platform
+from homeassistant.const import CONF_HOST, CONF_NAME, EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.typing import ConfigType
@@ -28,6 +28,20 @@ from .discovery import async_start_listener
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+DISCOVERY_START_LISTENER_UNSUB = "discovery_listener_unsub"
+
+
+async def _async_ensure_discovery_listener(hass: HomeAssistant) -> None:
+    """Ensure the passive discovery listener is running."""
+
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if DATA_DISCOVERY in domain_data:
+        return
+
+    protocol = await async_start_listener(hass)
+    if protocol is None:
+        domain_data.pop(DATA_DISCOVERY, None)
 
 
 PLATFORMS: list[Platform] = [
@@ -90,8 +104,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     domain_data = hass.data.setdefault(DOMAIN, {})
 
-    if DATA_DISCOVERY not in domain_data:
-        await async_start_listener(hass)
+    if hass.is_running:
+        await _async_ensure_discovery_listener(hass)
+    elif DISCOVERY_START_LISTENER_UNSUB not in domain_data:
+        async def _start_discovery_listener(_: object) -> None:
+            domain_data.pop(DISCOVERY_START_LISTENER_UNSUB, None)
+            await _async_ensure_discovery_listener(hass)
+
+        domain_data[DISCOVERY_START_LISTENER_UNSUB] = hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STARTED, _start_discovery_listener
+        )
 
     if (switch_configs := config.get(Platform.SWITCH.value)) is not None:
         for entry in switch_configs:
@@ -123,6 +145,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry) -> bool:
     """Set up Sony Projector from a config entry."""
+
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if unsub := domain_data.pop(DISCOVERY_START_LISTENER_UNSUB, None):
+        unsub()
+
+    await _async_ensure_discovery_listener(hass)
 
     client = ProjectorClient(entry.data[CONF_HOST])
     coordinator = SonyProjectorCoordinator(hass, client, entry)
