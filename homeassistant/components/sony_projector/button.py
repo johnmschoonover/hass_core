@@ -34,7 +34,9 @@ async def async_setup_entry(
         name=entry.data.get(CONF_TITLE, entry.title or DEFAULT_NAME),
     )
 
-    async_add_entities([SonyProjectorPictureMuteButton(entry, coordinator, client, device_info)])
+    async_add_entities(
+        [SonyProjectorPictureMuteButton(entry, coordinator, client, device_info)]
+    )
 
 
 class SonyProjectorPictureMuteButton(CoordinatorEntity, ButtonEntity):

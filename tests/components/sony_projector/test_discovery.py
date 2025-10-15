@@ -47,9 +47,7 @@ async def test_datagram_triggers_flow(hass, serial) -> None:
         "homeassistant.components.sony_projector.discovery.discovery_flow.async_create_flow",
         autospec=True,
     ) as mock_flow:
-        protocol.datagram_received(
-            _sdap_payload(serial=serial), ("192.0.2.40", 1000)
-        )
+        protocol.datagram_received(_sdap_payload(serial=serial), ("192.0.2.40", 1000))
 
     mock_flow.assert_called_once()
     _, _, kwargs = mock_flow.mock_calls[0]

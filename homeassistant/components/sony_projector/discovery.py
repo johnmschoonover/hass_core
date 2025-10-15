@@ -102,7 +102,9 @@ class SonyProjectorDiscoveryProtocol(asyncio.DatagramProtocol):
             self._transport = None
 
 
-async def async_start_listener(hass: HomeAssistant) -> SonyProjectorDiscoveryProtocol | None:
+async def async_start_listener(
+    hass: HomeAssistant,
+) -> SonyProjectorDiscoveryProtocol | None:
     """Start listening for passive SDCP discovery broadcasts."""
 
     loop = asyncio.get_running_loop()
@@ -124,6 +126,7 @@ async def async_start_listener(hass: HomeAssistant) -> SonyProjectorDiscoveryPro
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _close_listener)
     hass.data.setdefault(DOMAIN, {})[DATA_DISCOVERY] = protocol
-    _LOGGER.debug("Listening for Sony projector SDCP broadcasts on port %s", DISCOVERY_PORT)
+    _LOGGER.debug(
+        "Listening for Sony projector SDCP broadcasts on port %s", DISCOVERY_PORT
+    )
     return protocol
-

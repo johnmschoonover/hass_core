@@ -50,7 +50,9 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._pending_discovery = None
         self._pending_discovery_title = None
 
-    async def async_step_user(self, user_input: Mapping[str, Any] | None = None) -> config_entries.FlowResult:
+    async def async_step_user(
+        self, user_input: Mapping[str, Any] | None = None
+    ) -> config_entries.FlowResult:
         """Handle the start of the config flow."""
 
         return self.async_show_menu(
@@ -70,7 +72,9 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             name = user_input.get(CONF_NAME)
             return await self._async_create_entry_from_host(host, name, "manual")
 
-        data_schema = vol.Schema({vol.Required(CONF_HOST): str, vol.Optional(CONF_NAME): str})
+        data_schema = vol.Schema(
+            {vol.Required(CONF_HOST): str, vol.Optional(CONF_NAME): str}
+        )
         return self.async_show_form(
             step_id="manual",
             data_schema=data_schema,
@@ -126,7 +130,9 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             selected = user_input[CONF_HOST]
             device = self._discovered[selected]
-            return await self._async_create_entry_from_host(device.host, device.model, "scan")
+            return await self._async_create_entry_from_host(
+                device.host, device.model, "scan"
+            )
 
         if not self._discovered:
             errors["base"] = "no_devices_found"
@@ -198,17 +204,23 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "confirm",
         )
 
-    async def async_step_import(self, user_input: Mapping[str, Any]) -> config_entries.FlowResult:
+    async def async_step_import(
+        self, user_input: Mapping[str, Any]
+    ) -> config_entries.FlowResult:
         """Handle YAML import for legacy configurations."""
 
         host = user_input[CONF_HOST]
         name = user_input.get(CONF_NAME)
         return await self._async_create_entry_from_host(host, name, "manual")
 
-    async def async_step_reauth(self, data: Mapping[str, Any]) -> config_entries.FlowResult:
+    async def async_step_reauth(
+        self, data: Mapping[str, Any]
+    ) -> config_entries.FlowResult:
         """Handle reauthentication."""
 
-        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
         return await self.async_step_user()
 
     async def _async_create_entry_from_host(
@@ -297,4 +309,3 @@ def _format_discovery_option(device: DiscoveredProjector) -> str:
     serial = device.serial or "unknown"
     model = device.model or DEFAULT_NAME
     return f"{model} ({serial}) @ {device.host}"
-

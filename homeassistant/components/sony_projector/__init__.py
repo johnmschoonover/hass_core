@@ -111,6 +111,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     if hass.is_running:
         await _async_ensure_discovery_listener(hass)
     elif DISCOVERY_START_LISTENER_UNSUB not in domain_data:
+
         async def _start_discovery_listener(_: object) -> None:
             domain_data.pop(DISCOVERY_START_LISTENER_UNSUB, None)
             await _async_ensure_discovery_listener(hass)
@@ -147,7 +148,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SonyProjectorConfigEntry
+) -> bool:
     """Set up Sony Projector from a config entry."""
 
     domain_data = hass.data.setdefault(DOMAIN, {})
@@ -183,7 +186,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: SonyProjectorConfigEntry
+) -> bool:
     """Unload a config entry."""
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -192,5 +197,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntr
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
-
-

@@ -27,7 +27,9 @@ async def async_setup_entry(
     runtime_data = entry.runtime_data
     coordinator = runtime_data.coordinator
 
-    async_add_entities([SonyProjectorMediaPlayer(entry, coordinator, runtime_data.client)])
+    async_add_entities(
+        [SonyProjectorMediaPlayer(entry, coordinator, runtime_data.client)]
+    )
 
 
 class SonyProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):

@@ -20,7 +20,9 @@ from homeassistant.data_entry_flow import FlowResultType
 from tests.common import MockConfigEntry
 
 
-async def test_manual_flow_success(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_manual_flow_success(
+    hass, mock_client_class, mock_projector_client, mock_discovery
+):
     """Test configuring the projector manually."""
 
     result = await hass.config_entries.flow.async_init(
@@ -34,7 +36,9 @@ async def test_manual_flow_success(hass, mock_client_class, mock_projector_clien
     assert result["type"] == FlowResultType.FORM
 
     user_input = {CONF_HOST: "192.0.2.11", CONF_NAME: "Living Room"}
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input
+    )
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == "Living Room"
@@ -44,7 +48,9 @@ async def test_manual_flow_success(hass, mock_client_class, mock_projector_clien
     assert mock_projector_client.async_get_state.called
 
 
-async def test_manual_flow_connection_error(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_manual_flow_connection_error(
+    hass, mock_client_class, mock_projector_client, mock_discovery
+):
     """Test the manual flow handling connection errors."""
 
     mock_projector_client.async_get_state.side_effect = ProjectorClientError
@@ -64,7 +70,9 @@ async def test_manual_flow_connection_error(hass, mock_client_class, mock_projec
     assert result["errors"] == {"base": "cannot_connect"}
 
 
-async def test_scan_flow_success(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_scan_flow_success(
+    hass, mock_client_class, mock_projector_client, mock_discovery
+):
     """Test discovering a projector and creating an entry."""
 
     mock_discovery.return_value = [
@@ -101,7 +109,9 @@ async def test_scan_flow_success(hass, mock_client_class, mock_projector_client,
     assert result["data"][CONF_HOST] == "192.0.2.13"
 
 
-async def test_scan_flow_no_devices(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_scan_flow_no_devices(
+    hass, mock_client_class, mock_projector_client, mock_discovery
+):
     """Test that scan handles empty results."""
 
     mock_discovery.return_value = []

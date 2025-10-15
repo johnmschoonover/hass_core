@@ -51,7 +51,13 @@ class SonyProjectorSelectBase(CoordinatorEntity, SelectEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, entry: SonyProjectorConfigEntry, coordinator, client, device_info: DeviceInfo) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator,
+        client,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the base select entity."""
 
         super().__init__(coordinator)

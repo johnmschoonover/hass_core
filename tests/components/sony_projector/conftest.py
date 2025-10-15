@@ -64,15 +64,19 @@ def mock_client_class(
 ) -> Generator[MagicMock]:
     """Patch the projector client constructor."""
 
-    with patch(
-        "homeassistant.components.sony_projector.client.ProjectorClient",
-        return_value=mock_projector_client,
-    ) as mock_cls, patch(
-        "homeassistant.components.sony_projector.config_flow.ProjectorClient",
-        return_value=mock_projector_client,
-    ), patch(
-        "homeassistant.components.sony_projector.ProjectorClient",
-        return_value=mock_projector_client,
+    with (
+        patch(
+            "homeassistant.components.sony_projector.client.ProjectorClient",
+            return_value=mock_projector_client,
+        ) as mock_cls,
+        patch(
+            "homeassistant.components.sony_projector.config_flow.ProjectorClient",
+            return_value=mock_projector_client,
+        ),
+        patch(
+            "homeassistant.components.sony_projector.ProjectorClient",
+            return_value=mock_projector_client,
+        ),
     ):
         yield mock_cls
 

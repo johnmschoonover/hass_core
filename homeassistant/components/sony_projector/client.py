@@ -86,7 +86,9 @@ class ProjectorClient:
                 udp_port=DISCOVERY_PORT,
             )
         except Exception as err:
-            raise ProjectorClientError("Unable to retrieve projector information") from err
+            raise ProjectorClientError(
+                "Unable to retrieve projector information"
+            ) from err
 
         self._model = info.get("model")
         serial = info.get("serial")
@@ -105,7 +107,9 @@ class ProjectorClient:
         lamp_hours_raw = await _call_optional(self._projector.get_lamp_hours)
         lamp_hours = int(lamp_hours_raw) if lamp_hours_raw is not None else None
 
-        aspect_ratio = await _call_screen_get("ASPECT_RATIO", pysdcp_extended.ASPECT_RATIOS, self._projector)
+        aspect_ratio = await _call_screen_get(
+            "ASPECT_RATIO", pysdcp_extended.ASPECT_RATIOS, self._projector
+        )
         picture_mode = await _call_screen_get(
             "CALIBRATION_PRESET",
             pysdcp_extended.CALIBRATION_PRESETS,
@@ -167,15 +171,24 @@ class ProjectorClient:
     async def async_set_aspect_ratio(self, option: str) -> None:
         """Set the projector aspect ratio."""
 
-        await _call_screen_set("ASPECT_RATIO", option, pysdcp_extended.ASPECT_RATIOS, self._projector)
+        await _call_screen_set(
+            "ASPECT_RATIO", option, pysdcp_extended.ASPECT_RATIOS, self._projector
+        )
 
     async def async_set_picture_mode(self, option: str) -> None:
         """Set the projector picture mode."""
 
-        await _call_screen_set("CALIBRATION_PRESET", option, pysdcp_extended.CALIBRATION_PRESETS, self._projector)
+        await _call_screen_set(
+            "CALIBRATION_PRESET",
+            option,
+            pysdcp_extended.CALIBRATION_PRESETS,
+            self._projector,
+        )
 
 
-async def async_discover(loop: Any, timeout: float = DISCOVERY_TIMEOUT) -> list[DiscoveredProjector]:
+async def async_discover(
+    loop: Any, timeout: float = DISCOVERY_TIMEOUT
+) -> list[DiscoveredProjector]:
     """Discover projectors via SDAP."""
 
     return await loop.run_in_executor(None, partial(_discover_sync, timeout))
@@ -281,4 +294,3 @@ async def _call_screen_set(
         )
     except Exception as err:
         raise ProjectorClientError(f"Failed to set {command}") from err
-
