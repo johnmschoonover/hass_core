@@ -21,6 +21,8 @@ from homeassistant.core import HomeAssistant
 
 from tests.common import MockConfigEntry
 
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture
 def mock_projector_state() -> ProjectorState:

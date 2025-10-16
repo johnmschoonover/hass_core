@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from homeassistant import config_entries
 from homeassistant.components.sony_projector.client import (
     DiscoveredProjector,
@@ -23,11 +25,11 @@ from homeassistant.data_entry_flow import FlowResultType
 from tests.common import MockConfigEntry
 
 
+@pytest.mark.usefixtures("mock_discovery")
 async def test_manual_flow_success(
     hass: HomeAssistant,
     mock_client_class: MagicMock,
     mock_projector_client: MagicMock,
-    mock_discovery: AsyncMock,
 ) -> None:
     """Test configuring the projector manually."""
 
@@ -54,11 +56,11 @@ async def test_manual_flow_success(
     assert mock_projector_client.async_get_state.called
 
 
+@pytest.mark.usefixtures("mock_discovery")
 async def test_manual_flow_connection_error(
     hass: HomeAssistant,
     mock_client_class: MagicMock,
     mock_projector_client: MagicMock,
-    mock_discovery: AsyncMock,
 ) -> None:
     """Test the manual flow handling connection errors."""
 

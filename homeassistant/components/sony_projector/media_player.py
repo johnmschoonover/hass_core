@@ -10,6 +10,7 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -57,12 +58,12 @@ class SonyProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         self._client = client
         identifier = entry.data.get(CONF_SERIAL) or entry.data[CONF_HOST]
         self._attr_unique_id = f"{identifier}-media_player"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, identifier)},
-            "manufacturer": "Sony",
-            "model": entry.data.get(CONF_MODEL),
-            "name": entry.data.get(CONF_TITLE, entry.title or DEFAULT_NAME),
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, identifier)},
+            manufacturer="Sony",
+            model=entry.data.get(CONF_MODEL),
+            name=entry.data.get(CONF_TITLE, entry.title or DEFAULT_NAME),
+        )
         self._attr_name = None
 
     @property
