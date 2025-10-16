@@ -6,7 +6,9 @@ from astroid import nodes
 from pylint.checkers import BaseChecker
 from pylint.lint import PyLinter
 
-from homeassistant.const import Platform
+from homeassistant.generated.entity_platforms import (
+    EntityPlatforms as Platform,
+)
 
 _BASE_ENTITY_MODULES: set[str] = {
     "BaseCoordinatorEntity",

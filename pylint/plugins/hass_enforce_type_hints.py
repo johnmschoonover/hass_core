@@ -12,7 +12,9 @@ from astroid.exceptions import NameInferenceError
 from pylint.checkers import BaseChecker
 from pylint.lint import PyLinter
 
-from homeassistant.const import Platform
+from homeassistant.generated.entity_platforms import (
+    EntityPlatforms as Platform,
+)
 
 if TYPE_CHECKING:
     # InferenceResult is available only from astroid >= 2.12.0
