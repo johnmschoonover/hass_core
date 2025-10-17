@@ -5,6 +5,6 @@
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/sony_projector",
   "iot_class": "local_polling",
-  "quality_scale": "legacy",
+  "quality_scale": "bronze",
   "requirements": ["pysdcp-extended==0.2.0"]
 }
