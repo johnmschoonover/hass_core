@@ -10,27 +10,32 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import SonyProjectorConfigEntry
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
+from .coordinator import SonyProjectorCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SonyProjectorConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the media player entity."""
 
     runtime_data = entry.runtime_data
     coordinator = runtime_data.coordinator
 
-    async_add_entities([SonyProjectorMediaPlayer(entry, coordinator, runtime_data.client)])
+    async_add_entities(
+        [SonyProjectorMediaPlayer(entry, coordinator, runtime_data.client)]
+    )
 
 
-class SonyProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
+class SonyProjectorMediaPlayer(
+    CoordinatorEntity[SonyProjectorCoordinator], MediaPlayerEntity
+):
     """Representation of the projector as a media player."""
 
     _attr_device_class = MediaPlayerDeviceClass.TV

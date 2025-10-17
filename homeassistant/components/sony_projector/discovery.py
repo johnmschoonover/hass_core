@@ -7,12 +7,12 @@ import logging
 import socket
 from typing import Any
 
+import pysdcp_extended
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import discovery_flow
-
-import pysdcp_extended
 
 from .const import (
     CONF_MODEL,
@@ -102,14 +102,16 @@ class SonyProjectorDiscoveryProtocol(asyncio.DatagramProtocol):
             self._transport = None
 
 
-async def async_start_listener(hass: HomeAssistant) -> SonyProjectorDiscoveryProtocol | None:
+async def async_start_listener(
+    hass: HomeAssistant,
+) -> SonyProjectorDiscoveryProtocol | None:
     """Start listening for passive SDCP discovery broadcasts."""
 
     loop = asyncio.get_running_loop()
     protocol = SonyProjectorDiscoveryProtocol(hass)
 
     try:
-        await loop.create_datagram_endpoint(  # type: ignore[return-value]
+        await loop.create_datagram_endpoint(
             lambda: protocol,
             local_addr=("0.0.0.0", DISCOVERY_PORT),
             allow_broadcast=True,
@@ -124,6 +126,7 @@ async def async_start_listener(hass: HomeAssistant) -> SonyProjectorDiscoveryPro
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _close_listener)
     hass.data.setdefault(DOMAIN, {})[DATA_DISCOVERY] = protocol
-    _LOGGER.debug("Listening for Sony projector SDCP broadcasts on port %s", DISCOVERY_PORT)
+    _LOGGER.debug(
+        "Listening for Sony projector SDCP broadcasts on port %s", DISCOVERY_PORT
+    )
     return protocol
-

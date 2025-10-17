@@ -26,7 +26,7 @@ async def async_setup_platform(
 
     _LOGGER.warning(
         "The 'switch' platform for sony_projector is deprecated. The configuration will "
-        "be imported into the UI." 
+        "be imported into the UI"
     )
 
     hass.async_create_task(

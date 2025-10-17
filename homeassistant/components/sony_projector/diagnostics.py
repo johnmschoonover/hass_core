@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
+
 import pysdcp_extended
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -16,7 +19,7 @@ TO_REDACT = {CONF_HOST, CONF_SERIAL}
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: SonyProjectorConfigEntry
-) -> dict:
+) -> Mapping[str, Any]:
     """Return diagnostics for a config entry."""
 
     coordinator = entry.runtime_data.coordinator

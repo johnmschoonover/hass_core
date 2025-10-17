@@ -3,26 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, EVENT_HOMEASSISTANT_STARTED, Platform
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    EVENT_HOMEASSISTANT_STARTED,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .client import ProjectorClient, ProjectorClientError, ProjectorState
-from .const import (
-    CONF_MODEL,
-    CONF_SERIAL,
-    CONF_TITLE,
-    DATA_DISCOVERY,
-    DEFAULT_NAME,
-    DOMAIN,
-    SCAN_INTERVAL_SECONDS,
-)
+from .client import ProjectorClient
+from .const import CONF_MODEL, CONF_SERIAL, DATA_DISCOVERY, DEFAULT_NAME, DOMAIN
+from .coordinator import SonyProjectorCoordinator
 from .discovery import async_start_listener
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,9 +41,9 @@ async def _async_ensure_discovery_listener(hass: HomeAssistant) -> None:
 
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.MEDIA_PLAYER,
     Platform.SELECT,
-    Platform.BUTTON,
     Platform.SENSOR,
 ]
 
@@ -56,47 +52,11 @@ PLATFORMS: list[Platform] = [
 class SonyProjectorRuntimeData:
     """Runtime data stored for each config entry."""
 
-    coordinator: "SonyProjectorCoordinator"
+    coordinator: SonyProjectorCoordinator
     client: ProjectorClient
 
 
 type SonyProjectorConfigEntry = ConfigEntry[SonyProjectorRuntimeData]
-
-
-class SonyProjectorCoordinator(DataUpdateCoordinator[ProjectorState]):
-    """Coordinator to manage projector updates."""
-
-    config_entry: SonyProjectorConfigEntry
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        client: ProjectorClient,
-        entry: SonyProjectorConfigEntry,
-    ) -> None:
-        """Initialize the coordinator."""
-
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=SCAN_INTERVAL_SECONDS),
-            config_entry=entry,
-        )
-        self.client = client
-        self.last_error: str | None = None
-
-    async def _async_update_data(self) -> ProjectorState:
-        """Fetch data from the projector."""
-
-        try:
-            state = await self.client.async_get_state()
-        except ProjectorClientError as err:
-            self.last_error = str(err)
-            raise UpdateFailed(str(err)) from err
-
-        self.last_error = None
-        return state
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -107,6 +67,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     if hass.is_running:
         await _async_ensure_discovery_listener(hass)
     elif DISCOVERY_START_LISTENER_UNSUB not in domain_data:
+
         async def _start_discovery_listener(_: object) -> None:
             domain_data.pop(DISCOVERY_START_LISTENER_UNSUB, None)
             await _async_ensure_discovery_listener(hass)
@@ -137,13 +98,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
             _LOGGER.warning(
                 "The YAML configuration for sony_projector is deprecated and will be "
-                "imported into a config entry. Please remove it from configuration.yaml."
+                "imported into a config entry. Please remove it from configuration.yaml"
             )
 
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SonyProjectorConfigEntry
+) -> bool:
     """Set up Sony Projector from a config entry."""
 
     domain_data = hass.data.setdefault(DOMAIN, {})
@@ -179,7 +142,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: SonyProjectorConfigEntry
+) -> bool:
     """Unload a config entry."""
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -188,5 +153,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: SonyProjectorConfigEntr
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
-
-
