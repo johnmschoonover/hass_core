@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from dataclasses import dataclass, field
+
 from aioswitcher.bridge import SwitcherBridge
 from aioswitcher.device import SwitcherBase
 
@@ -27,19 +29,29 @@ PLATFORMS = [
 _LOGGER = logging.getLogger(__name__)
 
 
-type SwitcherConfigEntry = ConfigEntry[dict[str, SwitcherDataUpdateCoordinator]]
+
+@dataclass(slots=True)
+class SwitcherRuntimeData:
+    """Runtime data for Switcher config entries."""
+
+    bridge: SwitcherBridge
+    coordinators: dict[str, SwitcherDataUpdateCoordinator] = field(
+        default_factory=dict
+    )
+
+
+type SwitcherConfigEntry = ConfigEntry[SwitcherRuntimeData]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SwitcherConfigEntry) -> bool:
     """Set up Switcher from a config entry."""
 
     token = entry.data.get(CONF_TOKEN)
+    coordinators: dict[str, SwitcherDataUpdateCoordinator] = {}
 
     @callback
     def on_device_data_callback(device: SwitcherBase) -> None:
         """Use as a callback for device data."""
-
-        coordinators = entry.runtime_data
 
         # Existing device update device data
         if coordinator := coordinators.get(device.device_id):
@@ -68,8 +80,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: SwitcherConfigEntry) -> 
     # Must be ready before dispatcher is called
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    entry.runtime_data = {}
     bridge = SwitcherBridge(on_device_data_callback)
+    entry.runtime_data = SwitcherRuntimeData(bridge=bridge, coordinators=coordinators)
     await bridge.start()
 
     async def stop_bridge(event: Event | None = None) -> None:
@@ -94,5 +106,6 @@ async def async_remove_config_entry_device(
 ) -> bool:
     """Remove a config entry from a device."""
     return not device_entry.identifiers.intersection(
-        (DOMAIN, device_id) for device_id in config_entry.runtime_data
+        (DOMAIN, device_id)
+        for device_id in config_entry.runtime_data.coordinators
     )

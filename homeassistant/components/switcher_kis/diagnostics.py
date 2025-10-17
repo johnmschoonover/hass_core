@@ -17,12 +17,14 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: SwitcherConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinators = entry.runtime_data
+    coordinators = entry.runtime_data.coordinators
 
     return async_redact_data(
         {
             "entry": entry.as_dict(),
-            "devices": [asdict(coordinators[d].data) for d in coordinators],
+            "devices": [
+                asdict(coordinator.data) for coordinator in coordinators.values()
+            ],
         },
         TO_REDACT,
     )

@@ -34,7 +34,7 @@ async def test_update_fail(
     await hass.async_block_till_done()
 
     assert mock_bridge.is_running is True
-    assert len(entry.runtime_data) == 2
+    assert len(entry.runtime_data.coordinators) == 2
 
     freezer.tick(timedelta(seconds=MAX_UPDATE_INTERVAL_SEC + 1))
     async_fire_time_changed(hass)
@@ -102,7 +102,7 @@ async def test_remove_device(
     await hass.async_block_till_done()
 
     assert mock_bridge.is_running is True
-    assert len(entry.runtime_data) == 2
+    assert len(entry.runtime_data.coordinators) == 2
 
     live_device_id = DUMMY_DEVICE_ID1
     dead_device_id = DUMMY_DEVICE_ID4

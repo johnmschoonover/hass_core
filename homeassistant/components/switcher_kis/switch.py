@@ -40,6 +40,8 @@ API_CONTROL_DEVICE = "control_device"
 API_SET_AUTO_SHUTDOWN = "set_auto_shutdown"
 API_SET_CHILD_LOCK = "set_shutter_child_lock"
 
+PARALLEL_UPDATES = 0
+
 SERVICE_SET_AUTO_OFF_SCHEMA: VolDictType = {
     vol.Required(CONF_AUTO_OFF): cv.time_period_str,
 }

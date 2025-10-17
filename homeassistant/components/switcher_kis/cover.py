@@ -24,6 +24,8 @@ from .entity import SwitcherEntity
 API_SET_POSITON = "set_position"
 API_STOP = "stop_shutter"
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
