@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 import logging
 import time
-from typing import Any, Callable
+from typing import Any
 
 import pysdcp_extended
 
@@ -84,8 +85,10 @@ class ProjectorClient:
                 timeout=DISCOVERY_TIMEOUT,
                 udp_port=DISCOVERY_PORT,
             )
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
-            raise ProjectorClientError("Unable to retrieve projector information") from err
+        except Exception as err:
+            raise ProjectorClientError(
+                "Unable to retrieve projector information"
+            ) from err
 
         self._model = info.get("model")
         serial = info.get("serial")
@@ -97,14 +100,16 @@ class ProjectorClient:
         try:
             is_on = await _run_in_executor(self._projector.get_power)
             current_input = await _run_in_executor(self._projector.get_input)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Failed to query projector state") from err
 
         picture_mute = await _call_optional(self._projector.get_muting)
         lamp_hours_raw = await _call_optional(self._projector.get_lamp_hours)
         lamp_hours = int(lamp_hours_raw) if lamp_hours_raw is not None else None
 
-        aspect_ratio = await _call_screen_get("ASPECT_RATIO", pysdcp_extended.ASPECT_RATIOS, self._projector)
+        aspect_ratio = await _call_screen_get(
+            "ASPECT_RATIO", pysdcp_extended.ASPECT_RATIOS, self._projector
+        )
         picture_mode = await _call_screen_get(
             "CALIBRATION_PRESET",
             pysdcp_extended.CALIBRATION_PRESETS,
@@ -137,7 +142,7 @@ class ProjectorClient:
 
         try:
             await _run_in_executor(self._projector.set_power, on)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set power state") from err
 
     async def async_set_input(self, source: str) -> None:
@@ -146,7 +151,7 @@ class ProjectorClient:
         hdmi_number = 1 if source.endswith("1") else 2
         try:
             await _run_in_executor(self._projector.set_HDMI_input, hdmi_number)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set projector input") from err
 
     async def async_set_picture_mute(self, mute: bool) -> None:
@@ -154,7 +159,7 @@ class ProjectorClient:
 
         try:
             await _run_in_executor(self._projector.set_muting, mute)
-        except Exception as err:  # noqa: BLE001 - library raises generic exceptions
+        except Exception as err:
             raise ProjectorClientError("Unable to set picture muting") from err
 
     async def async_toggle_picture_mute(self) -> None:
@@ -166,15 +171,24 @@ class ProjectorClient:
     async def async_set_aspect_ratio(self, option: str) -> None:
         """Set the projector aspect ratio."""
 
-        await _call_screen_set("ASPECT_RATIO", option, pysdcp_extended.ASPECT_RATIOS, self._projector)
+        await _call_screen_set(
+            "ASPECT_RATIO", option, pysdcp_extended.ASPECT_RATIOS, self._projector
+        )
 
     async def async_set_picture_mode(self, option: str) -> None:
         """Set the projector picture mode."""
 
-        await _call_screen_set("CALIBRATION_PRESET", option, pysdcp_extended.CALIBRATION_PRESETS, self._projector)
+        await _call_screen_set(
+            "CALIBRATION_PRESET",
+            option,
+            pysdcp_extended.CALIBRATION_PRESETS,
+            self._projector,
+        )
 
 
-async def async_discover(loop: Any, timeout: float = DISCOVERY_TIMEOUT) -> list[DiscoveredProjector]:
+async def async_discover(
+    loop: Any, timeout: float = DISCOVERY_TIMEOUT
+) -> list[DiscoveredProjector]:
     """Discover projectors via SDAP."""
 
     return await loop.run_in_executor(None, partial(_discover_sync, timeout))
@@ -278,6 +292,5 @@ async def _call_screen_set(
             pysdcp_extended.COMMANDS[command],
             options[option],
         )
-    except Exception as err:  # noqa: BLE001
+    except Exception as err:
         raise ProjectorClientError(f"Failed to set {command}") from err
-

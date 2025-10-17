@@ -2,21 +2,22 @@
 
 from __future__ import annotations
 
+from homeassistant.components.select import SelectEntity
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo  # type: ignore[attr-defined]
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.select import SelectEntity
 
 from . import SonyProjectorConfigEntry
 from .const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
+from .coordinator import SonyProjectorCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SonyProjectorConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up select entities from a config entry."""
 
@@ -46,12 +47,20 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class SonyProjectorSelectBase(CoordinatorEntity, SelectEntity):
+class SonyProjectorSelectBase(
+    CoordinatorEntity[SonyProjectorCoordinator], SelectEntity
+):
     """Base select entity for projector settings."""
 
     _attr_has_entity_name = True
 
-    def __init__(self, entry: SonyProjectorConfigEntry, coordinator, client, device_info: DeviceInfo) -> None:
+    def __init__(
+        self,
+        entry: SonyProjectorConfigEntry,
+        coordinator,
+        client,
+        device_info: DeviceInfo,
+    ) -> None:
         """Initialize the base select entity."""
 
         super().__init__(coordinator)
