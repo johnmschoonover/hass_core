@@ -7,9 +7,9 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -45,7 +45,9 @@ async def async_setup_entry(
     async_add_entities(sensors)
 
 
-class SonyProjectorBaseSensor(CoordinatorEntity, SensorEntity):
+class SonyProjectorBaseSensor(
+    CoordinatorEntity[SonyProjectorCoordinator], SensorEntity
+):
     """Base class for Sony projector sensors."""
 
     _attr_has_entity_name = True

@@ -12,6 +12,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult
 
 from .client import (
     DiscoveredProjector,
@@ -52,7 +53,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle the start of the config flow."""
 
         return self.async_show_menu(
@@ -62,7 +63,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_manual(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle manual host configuration."""
 
         errors: dict[str, str] = {}
@@ -83,7 +84,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_scan(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle discovery of projectors on the network."""
 
         if user_input is not None:
@@ -122,7 +123,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_scan_results(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Present discovered projectors to the user."""
 
         errors: dict[str, str] = {}
@@ -155,7 +156,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_integration_discovery(
         self, discovery_info: Mapping[str, Any]
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle passive SDCP discovery."""
 
         host = discovery_info[CONF_HOST]
@@ -166,7 +167,11 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         device = DiscoveredProjector(host=host, model=model, serial=serial)
         unique_id = serial or host
         await self.async_set_unique_id(unique_id, raise_on_progress=False)
-        self._abort_if_unique_id_in_progress(updates={CONF_HOST: host})
+        abort_if_in_progress: Any = getattr(
+            self, "_abort_if_unique_id_in_progress", None
+        )
+        if abort_if_in_progress is not None:
+            abort_if_in_progress(updates={CONF_HOST: host})
         self._abort_if_unique_id_configured(updates={CONF_HOST: host})
         self._async_abort_entries_match({CONF_HOST: host})
 
@@ -179,7 +184,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_confirm(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Confirm adding a discovered projector."""
 
         assert self._pending_discovery is not None
@@ -206,7 +211,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(
         self, user_input: Mapping[str, Any]
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle YAML import for legacy configurations."""
 
         host = user_input[CONF_HOST]
@@ -215,7 +220,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth(
         self, data: Mapping[str, Any]
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle reauthentication."""
 
         self._reauth_entry = self.hass.config_entries.async_get_entry(
@@ -228,7 +233,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         host: str,
         suggested_title: str | None,
         source_step: str,
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Validate projector connectivity and create the entry."""
 
         client = ProjectorClient(host)
@@ -278,9 +283,9 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    @callback
+    @staticmethod
     def async_get_options_flow(
-        self, config_entry: config_entries.ConfigEntry
+        config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Return the options flow handler."""
 
@@ -297,7 +302,7 @@ class SonyProjectorOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: Mapping[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Options flow entry point."""
 
         return self.async_show_form(step_id="init", data_schema=vol.Schema({}))

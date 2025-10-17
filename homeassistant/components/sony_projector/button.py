@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -40,7 +40,9 @@ async def async_setup_entry(
     )
 
 
-class SonyProjectorPictureMuteButton(CoordinatorEntity, ButtonEntity):
+class SonyProjectorPictureMuteButton(
+    CoordinatorEntity[SonyProjectorCoordinator], ButtonEntity
+):
     """Button to toggle picture mute on the projector."""
 
     _attr_has_entity_name = True

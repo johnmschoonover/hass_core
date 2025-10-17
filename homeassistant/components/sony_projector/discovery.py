@@ -111,7 +111,7 @@ async def async_start_listener(
     protocol = SonyProjectorDiscoveryProtocol(hass)
 
     try:
-        await loop.create_datagram_endpoint(  # type: ignore[return-value]
+        _transport, _ = await loop.create_datagram_endpoint(
             lambda: protocol,
             local_addr=("0.0.0.0", DISCOVERY_PORT),
             allow_broadcast=True,

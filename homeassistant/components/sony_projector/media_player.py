@@ -10,7 +10,7 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -34,7 +34,9 @@ async def async_setup_entry(
     )
 
 
-class SonyProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
+class SonyProjectorMediaPlayer(
+    CoordinatorEntity[SonyProjectorCoordinator], MediaPlayerEntity
+):
     """Representation of the projector as a media player."""
 
     _attr_device_class = MediaPlayerDeviceClass.TV
