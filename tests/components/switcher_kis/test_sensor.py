@@ -45,7 +45,7 @@ async def test_sensor_platform(hass: HomeAssistant, mock_bridge) -> None:
     assert mock_bridge
 
     assert mock_bridge.is_running is True
-    assert len(entry.runtime_data) == 3
+    assert len(entry.runtime_data.coordinators) == 3
 
     for device, sensors in DEVICE_SENSORS_TUPLE:
         for sensor, field in sensors:

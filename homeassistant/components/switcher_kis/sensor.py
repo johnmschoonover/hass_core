@@ -39,6 +39,9 @@ class SwitcherSensorEntityDescription(SensorEntityDescription):
     value_fn: Callable[[SwitcherBase], StateType]
 
 
+PARALLEL_UPDATES = 0
+
+
 POWER_SENSORS: list[SwitcherSensorEntityDescription] = [
     SwitcherSensorEntityDescription(
         key="power_consumption",

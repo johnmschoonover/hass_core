@@ -18,6 +18,8 @@ from .entity import SwitcherEntity
 
 API_SET_LIGHT = "set_light"
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
