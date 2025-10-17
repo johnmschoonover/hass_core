@@ -5,11 +5,17 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.diagnostics import REDACTED
+from homeassistant.core import HomeAssistant
 
 from tests.components.diagnostics import get_diagnostics_for_config_entry
+from tests.typing import ClientSessionGenerator
 
 
-async def test_diagnostics(hass, hass_client, init_integration):
+async def test_diagnostics(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    init_integration,
+) -> None:
     """Test diagnostic information is returned and redacted."""
 
     diagnostics_info = AsyncMock(
