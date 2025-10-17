@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from freezegun.api import FrozenDateTimeFactory
 import pytest
+from xknx.core import XknxConnectionState, XknxConnectionType
 from xknx.io import (
     DEFAULT_MCAST_GRP,
     DEFAULT_MCAST_PORT,
@@ -47,6 +48,7 @@ from homeassistant.components.knx.const import (
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 
 from . import KnxEntityGenerator
 from .conftest import KNXTestKit
@@ -360,3 +362,48 @@ async def test_async_remove_entry(
 
     assert hass.config_entries.async_entries() == []
     assert config_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_connection_repair_issue(
+    hass: HomeAssistant,
+    knx: KNXTestKit,
+) -> None:
+    """Test that a repair issue is created and cleared on connection state changes."""
+
+    config_entry = MockConfigEntry(
+        title="KNX",
+        domain=DOMAIN,
+        data=DEFAULT_ENTRY_DATA | KNXConfigEntryData(
+            connection_type=CONF_KNX_AUTOMATIC,
+        ),
+    )
+    knx.mock_config_entry = config_entry
+    await knx.setup_integration()
+
+    issue_id = f"connection_lost_{config_entry.entry_id}"
+    issue_registry = ir.async_get(hass)
+
+    assert issue_registry.async_get_issue(DOMAIN, issue_id) is None
+
+    knx.xknx.connection_manager.connection_state_changed(
+        state=XknxConnectionState.DISCONNECTED,
+        connection_type=XknxConnectionType.TUNNEL_TCP,
+    )
+    await hass.async_block_till_done()
+
+    issue = issue_registry.async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.translation_key == "connection_lost"
+    assert issue.translation_placeholders == {
+        "entry_title": "KNX",
+        "connection_type": CONF_KNX_AUTOMATIC,
+    }
+    assert issue.severity is ir.IssueSeverity.ERROR
+
+    knx.xknx.connection_manager.connection_state_changed(
+        state=XknxConnectionState.CONNECTED,
+        connection_type=XknxConnectionType.TUNNEL_TCP,
+    )
+    await hass.async_block_till_done()
+
+    assert issue_registry.async_get_issue(DOMAIN, issue_id) is None

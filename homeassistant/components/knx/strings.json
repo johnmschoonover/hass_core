@@ -609,5 +609,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "connection_lost": {
+      "title": "KNX connection lost",
+      "description": "Home Assistant is unable to communicate with the KNX interface `{entry_title}`. Verify that the KNX/IP interface is reachable and that the `{connection_type}` connection settings are still valid."
+    }
   }
 }

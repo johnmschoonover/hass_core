@@ -24,6 +24,8 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import Event, HomeAssistant
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.issue_registry import IssueSeverity
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.helpers.typing import ConfigType
 
@@ -50,6 +52,7 @@ from .const import (
     CONF_KNX_TUNNELING,
     CONF_KNX_TUNNELING_TCP,
     CONF_KNX_TUNNELING_TCP_SECURE,
+    DOMAIN,
     KNX_ADDRESS,
     TELEGRAM_LOG_DEFAULT,
 )
@@ -75,6 +78,7 @@ class KNXModule:
         self.exposures: list[KNXExposeSensor | KNXExposeTime] = []
         self.service_exposures: dict[str, KNXExposeSensor | KNXExposeTime] = {}
         self.entry = entry
+        self._connection_issue_id = f"connection_lost_{entry.entry_id}"
 
         self.project = KNXProject(hass=hass, entry=entry)
         self.config_store = KNXConfigStore(hass=hass, config_entry=entry)
@@ -230,6 +234,37 @@ class KNXModule:
         self.connected = state == XknxConnectionState.CONNECTED
         for device in self.xknx.devices:
             device.after_update()
+        self.hass.async_create_task(self._async_handle_connection_state(state))
+
+    @property
+    def connection_issue_id(self) -> str:
+        """Return the identifier used for the connection repair issue."""
+        return self._connection_issue_id
+
+    async def _async_handle_connection_state(
+        self, state: XknxConnectionState
+    ) -> None:
+        """Create or clear a repair issue when the connection state changes."""
+
+        entry_title = self.entry.title or DOMAIN.upper()
+        connection_type = self.entry.data.get(CONF_KNX_CONNECTION_TYPE, "automatic")
+        if state == XknxConnectionState.DISCONNECTED:
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                self._connection_issue_id,
+                is_fixable=False,
+                issue_domain=DOMAIN,
+                severity=IssueSeverity.ERROR,
+                translation_key="connection_lost",
+                translation_placeholders={
+                    "entry_title": entry_title,
+                    "connection_type": connection_type,
+                },
+            )
+            return
+
+        ir.async_delete_issue(self.hass, DOMAIN, self._connection_issue_id)
 
     def telegram_received_cb(self, telegram: Telegram) -> None:
         """Call invoked after a KNX telegram was received."""
