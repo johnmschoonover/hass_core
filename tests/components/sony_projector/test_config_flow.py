@@ -3,15 +3,30 @@
 from __future__ import annotations
 
 from homeassistant import config_entries
+from homeassistant.components.sony_projector.client import (
+    DiscoveredProjector,
+    ProjectorClientError,
+)
+from homeassistant.components.sony_projector.const import (
+    CONF_MODEL,
+    CONF_SERIAL,
+    CONF_TITLE,
+    DEFAULT_NAME,
+    DOMAIN,
+)
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from homeassistant.components.sony_projector.client import DiscoveredProjector, ProjectorClientError
-from homeassistant.components.sony_projector.const import CONF_MODEL, CONF_SERIAL, CONF_TITLE, DEFAULT_NAME, DOMAIN
 from tests.common import MockConfigEntry
 
 
-async def test_manual_flow_success(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_manual_flow_success(
+    hass: HomeAssistant,
+    mock_client_class,
+    mock_projector_client,
+    mock_discovery,
+) -> None:
     """Test configuring the projector manually."""
 
     result = await hass.config_entries.flow.async_init(
@@ -25,7 +40,9 @@ async def test_manual_flow_success(hass, mock_client_class, mock_projector_clien
     assert result["type"] == FlowResultType.FORM
 
     user_input = {CONF_HOST: "192.0.2.11", CONF_NAME: "Living Room"}
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input
+    )
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == "Living Room"
@@ -35,7 +52,12 @@ async def test_manual_flow_success(hass, mock_client_class, mock_projector_clien
     assert mock_projector_client.async_get_state.called
 
 
-async def test_manual_flow_connection_error(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_manual_flow_connection_error(
+    hass: HomeAssistant,
+    mock_client_class,
+    mock_projector_client,
+    mock_discovery,
+) -> None:
     """Test the manual flow handling connection errors."""
 
     mock_projector_client.async_get_state.side_effect = ProjectorClientError
@@ -55,7 +77,12 @@ async def test_manual_flow_connection_error(hass, mock_client_class, mock_projec
     assert result["errors"] == {"base": "cannot_connect"}
 
 
-async def test_scan_flow_success(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_scan_flow_success(
+    hass: HomeAssistant,
+    mock_client_class,
+    mock_projector_client,
+    mock_discovery,
+) -> None:
     """Test discovering a projector and creating an entry."""
 
     mock_discovery.return_value = [
@@ -92,7 +119,12 @@ async def test_scan_flow_success(hass, mock_client_class, mock_projector_client,
     assert result["data"][CONF_HOST] == "192.0.2.13"
 
 
-async def test_scan_flow_no_devices(hass, mock_client_class, mock_projector_client, mock_discovery):
+async def test_scan_flow_no_devices(
+    hass: HomeAssistant,
+    mock_client_class,
+    mock_projector_client,
+    mock_discovery,
+) -> None:
     """Test that scan handles empty results."""
 
     mock_discovery.return_value = []
@@ -119,7 +151,9 @@ async def test_scan_flow_no_devices(hass, mock_client_class, mock_projector_clie
     assert result["errors"] == {"base": "no_devices_found"}
 
 
-async def test_import_flow(hass, mock_client_class, mock_projector_client):
+async def test_import_flow(
+    hass: HomeAssistant, mock_client_class, mock_projector_client
+) -> None:
     """Test importing a YAML configuration."""
 
     result = await hass.config_entries.flow.async_init(
@@ -132,7 +166,9 @@ async def test_import_flow(hass, mock_client_class, mock_projector_client):
     assert result["data"][CONF_HOST] == "192.0.2.14"
 
 
-async def test_reauth_updates_entry(hass, mock_client_class, mock_projector_client):
+async def test_reauth_updates_entry(
+    hass: HomeAssistant, mock_client_class, mock_projector_client
+) -> None:
     """Test that reauth updates an existing entry."""
 
     entry = MockConfigEntry(
@@ -166,8 +202,8 @@ async def test_reauth_updates_entry(hass, mock_client_class, mock_projector_clie
 
 
 async def test_integration_discovery_flow_creates_entry(
-    hass, mock_client_class, mock_projector_client
-):
+    hass: HomeAssistant, mock_client_class, mock_projector_client
+) -> None:
     """Test confirming a passively discovered projector."""
 
     result = await hass.config_entries.flow.async_init(
@@ -193,8 +229,8 @@ async def test_integration_discovery_flow_creates_entry(
 
 
 async def test_integration_discovery_flow_existing_entry(
-    hass, mock_client_class, mock_projector_client
-):
+    hass: HomeAssistant, mock_client_class, mock_projector_client
+) -> None:
     """Test passive discovery aborts when projector already configured."""
 
     entry = MockConfigEntry(

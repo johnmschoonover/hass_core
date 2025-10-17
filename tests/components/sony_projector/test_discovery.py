@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import struct
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -15,6 +16,7 @@ from homeassistant.components.sony_projector.const import (
     DEFAULT_NAME,
     DOMAIN,
 )
+from homeassistant.core import HomeAssistant
 
 
 def _sdap_payload(
@@ -22,13 +24,11 @@ def _sdap_payload(
 ) -> bytes:
     """Create a minimal SDCP discovery packet."""
 
-    import struct
-
     product_bytes = product.encode("ascii").ljust(12, b"\x00")
     return (
         b"PJ"  # id
-        + b"\x01\x00"  # version, category
-        + b"HOME"  # community
+        b"\x01\x00"  # version, category
+        b"HOME"  # community
         + product_bytes
         + struct.pack(">I", serial)
         + struct.pack(">H", 1)
@@ -37,7 +37,7 @@ def _sdap_payload(
 
 
 @pytest.mark.parametrize("serial", [123456, 0])
-async def test_datagram_triggers_flow(hass, serial) -> None:
+async def test_datagram_triggers_flow(hass: HomeAssistant, serial: int) -> None:
     """Verify an SDCP datagram starts a discovery flow."""
 
     protocol = discovery.SonyProjectorDiscoveryProtocol(hass)
@@ -46,9 +46,7 @@ async def test_datagram_triggers_flow(hass, serial) -> None:
         "homeassistant.components.sony_projector.discovery.discovery_flow.async_create_flow",
         autospec=True,
     ) as mock_flow:
-        protocol.datagram_received(
-            _sdap_payload(serial=serial), ("192.0.2.40", 1000)
-        )
+        protocol.datagram_received(_sdap_payload(serial=serial), ("192.0.2.40", 1000))
 
     mock_flow.assert_called_once()
     _, _, kwargs = mock_flow.mock_calls[0]
@@ -59,7 +57,7 @@ async def test_datagram_triggers_flow(hass, serial) -> None:
     assert data[CONF_TITLE] == ("VPL-Test" if serial else DEFAULT_NAME)
 
 
-async def test_datagram_dedupes_by_device(hass) -> None:
+async def test_datagram_dedupes_by_device(hass: HomeAssistant) -> None:
     """Ensure repeated broadcasts from the same projector are ignored."""
 
     protocol = discovery.SonyProjectorDiscoveryProtocol(hass)
@@ -75,7 +73,7 @@ async def test_datagram_dedupes_by_device(hass) -> None:
     mock_flow.assert_called_once()
 
 
-async def test_invalid_datagram_ignored(hass) -> None:
+async def test_invalid_datagram_ignored(hass: HomeAssistant) -> None:
     """Ensure non-SDAP traffic is ignored."""
 
     protocol = discovery.SonyProjectorDiscoveryProtocol(hass)
@@ -89,7 +87,7 @@ async def test_invalid_datagram_ignored(hass) -> None:
     mock_flow.assert_not_called()
 
 
-async def test_async_start_listener_registers_transport(hass) -> None:
+async def test_async_start_listener_registers_transport(hass: HomeAssistant) -> None:
     """Ensure the passive listener binds to the SDCP port."""
 
     mock_transport = MagicMock()

@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from homeassistant.components.media_player import MediaPlayerState
+from homeassistant.components.sony_projector.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-
-from homeassistant.components.sony_projector.const import DOMAIN
 
 
 async def test_media_player_state(
@@ -35,6 +34,9 @@ async def test_media_player_state(
     mock_projector_client.async_set_power.assert_called_with(False)
 
     await hass.services.async_call(
-        "media_player", "select_source", {"entity_id": entity_id, "source": "HDMI 2"}, blocking=True
+        "media_player",
+        "select_source",
+        {"entity_id": entity_id, "source": "HDMI 2"},
+        blocking=True,
     )
     mock_projector_client.async_set_input.assert_called_with("HDMI 2")
