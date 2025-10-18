@@ -72,7 +72,10 @@ class SonyProjectorDiscoveryProtocol(asyncio.DatagramProtocol):
 
         serial = str(info.serial_number) if info.serial_number else None
         model = info.product_name or None
-        title = model or serial or DEFAULT_NAME
+        if serial is not None:
+            title = model or serial
+        else:
+            title = DEFAULT_NAME
 
         dedupe_key = serial or host
         if dedupe_key in self._seen:

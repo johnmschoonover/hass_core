@@ -35,9 +35,14 @@ async def _async_ensure_discovery_listener(hass: HomeAssistant) -> None:
     if DATA_DISCOVERY in domain_data:
         return
 
+    marker = object()
+    domain_data[DATA_DISCOVERY] = marker
     protocol = await async_start_listener(hass)
-    if protocol is None:
-        domain_data.pop(DATA_DISCOVERY, None)
+    if domain_data.get(DATA_DISCOVERY) is marker:
+        if protocol is None:
+            domain_data.pop(DATA_DISCOVERY, None)
+        else:
+            domain_data[DATA_DISCOVERY] = protocol
 
 
 PLATFORMS: list[Platform] = [
@@ -65,6 +70,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     domain_data = hass.data.setdefault(DOMAIN, {})
 
     if hass.is_running:
+        domain_data.setdefault(DISCOVERY_START_LISTENER_UNSUB, None)
         await _async_ensure_discovery_listener(hass)
     elif DISCOVERY_START_LISTENER_UNSUB not in domain_data:
 

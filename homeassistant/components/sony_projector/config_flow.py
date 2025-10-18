@@ -87,12 +87,17 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle discovery of projectors on the network."""
 
-        if user_input is not None:
+        if user_input is not None and CONF_HOST in user_input:
             return await self.async_step_scan_results(user_input)
 
         if self._discovery_task is None:
             self._discovery_task = self.hass.async_create_task(
                 async_discover(self.hass.loop, timeout=DISCOVERY_TIMEOUT)
+            )
+            return self.async_show_progress(
+                step_id="scan",
+                progress_action="listen_for_projectors",
+                description_placeholders={"timeout": str(int(DISCOVERY_TIMEOUT))},
             )
 
         if not self._discovery_task.done():
@@ -100,7 +105,6 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id="scan",
                 progress_action="listen_for_projectors",
                 description_placeholders={"timeout": str(int(DISCOVERY_TIMEOUT))},
-                progress_task=self._discovery_task,
             )
 
         try:
@@ -118,7 +122,6 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if unique_id in current_unique_ids:
                 continue
             self._discovered[device.host] = device
-
         return self.async_show_progress_done(next_step_id="scan_results")
 
     async def async_step_scan_results(
@@ -128,7 +131,7 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         errors: dict[str, str] = {}
 
-        if user_input is not None:
+        if user_input is not None and CONF_HOST in user_input:
             selected = user_input[CONF_HOST]
             device = self._discovered[selected]
             return await self._async_create_entry_from_host(
@@ -167,7 +170,6 @@ class SonyProjectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         device = DiscoveredProjector(host=host, model=model, serial=serial)
         unique_id = serial or host
         await self.async_set_unique_id(unique_id, raise_on_progress=False)
-        self._abort_if_unique_id_in_progress(updates={CONF_HOST: host})  # type: ignore[attr-defined]
         self._abort_if_unique_id_configured(updates={CONF_HOST: host})
         self._async_abort_entries_match({CONF_HOST: host})
 

@@ -15,6 +15,10 @@
         "data": {
           "host": "Host",
           "name": "Name"
+        },
+        "data_description": {
+          "host": "Enter the IP address or hostname of your projector.",
+          "name": "Give your projector a friendly name."
         }
       },
       "scan": {
@@ -22,6 +26,9 @@
         "description": "Select a projector that was discovered on your network ({count} found).",
         "data": {
           "host": "Projector"
+        },
+        "data_description": {
+          "host": "Select the projector you want to add."
         }
       },
       "confirm": {
