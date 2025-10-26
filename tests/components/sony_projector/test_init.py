@@ -13,21 +13,24 @@ from homeassistant.components.sony_projector import (
 )
 from homeassistant.components.sony_projector.const import (
     CONF_TITLE,
-    DATA_YAML_SWITCH_HOSTS,
     DATA_YAML_ISSUE_CREATED,
+    DATA_YAML_SWITCH_HOSTS,
     DEFAULT_NAME,
     DOMAIN,
     ISSUE_YAML_DEPRECATED,
 )
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.issue_registry import IssueSeverity
 
 from tests.common import MockConfigEntry
 
 
-async def test_async_setup_imports_yaml_and_creates_issue(hass) -> None:
+async def test_async_setup_imports_yaml_and_creates_issue(
+    hass: HomeAssistant,
+) -> None:
     """Test YAML setup imports configuration and surfaces a repairs issue."""
 
     hass.config_entries.flow.async_init = AsyncMock(return_value=None)
@@ -70,7 +73,9 @@ async def test_async_setup_imports_yaml_and_creates_issue(hass) -> None:
     assert hass.data[DOMAIN][DATA_YAML_ISSUE_CREATED]
 
 
-async def test_async_setup_entry_creates_runtime_and_device(hass) -> None:
+async def test_async_setup_entry_creates_runtime_and_device(
+    hass: HomeAssistant,
+) -> None:
     """Test setting up a config entry stores runtime data and device registry entry."""
 
     entry = MockConfigEntry(
@@ -108,7 +113,9 @@ async def test_async_setup_entry_creates_runtime_and_device(hass) -> None:
     assert device.name == "Living Room"
 
 
-async def test_async_unload_entry_unloads_platforms_and_cleans_up(hass) -> None:
+async def test_async_unload_entry_unloads_platforms_and_cleans_up(
+    hass: HomeAssistant,
+) -> None:
     """Test unloading a config entry removes stored data."""
 
     entry = MockConfigEntry(

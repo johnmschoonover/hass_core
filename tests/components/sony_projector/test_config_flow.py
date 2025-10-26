@@ -7,16 +7,16 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_HOST, CONF_NAME
-
-from homeassistant.components.sony_projector.const import CONF_TITLE, DOMAIN
 from homeassistant.components.sony_projector.config_flow import ProjectorClientError
+from homeassistant.components.sony_projector.const import CONF_TITLE, DOMAIN
+from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import HomeAssistant
 
 from tests.common import MockConfigEntry
 
 
-@pytest.fixture(autouse=True)
-def mock_projector_client_validate() -> AsyncMock:
+@pytest.fixture(name="mock_projector_client_validate", autouse=True)
+def mock_projector_client_validate_fixture() -> AsyncMock:
     """Mock the projector client validation call."""
 
     with patch(
@@ -28,7 +28,9 @@ def mock_projector_client_validate() -> AsyncMock:
 
 
 @pytest.fixture(autouse=True)
-def ignore_sony_projector_translations(ignore_missing_translations):
+def ignore_sony_projector_translations(
+    ignore_missing_translations: list[str],
+) -> list[str]:
     """Ignore translation checks that rely on the localized pipeline."""
 
     ignore_missing_translations.extend(
@@ -42,7 +44,9 @@ def ignore_sony_projector_translations(ignore_missing_translations):
 
 
 @pytest.fixture(autouse=True)
-def ignore_mock_domain_translations(ignore_translations_for_mock_domains):
+def ignore_mock_domain_translations(
+    ignore_translations_for_mock_domains: list[str],
+) -> list[str]:
     """Skip translation validation for the mocked sony_projector domain."""
 
     ignore_translations_for_mock_domains.append(DOMAIN)
@@ -50,20 +54,22 @@ def ignore_mock_domain_translations(ignore_translations_for_mock_domains):
 
 
 @pytest.fixture(name="check_translations", autouse=True)
-async def check_translations_fixture():
+async def check_translations_fixture() -> None:
     """Disable the global translation checks for this module."""
 
-    yield
+    return
 
 
-def _start_user_flow(hass):
+def _start_user_flow(hass: HomeAssistant):
     return hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_USER},
     )
 
 
-async def test_user_step_success(hass, mock_projector_client_validate: AsyncMock) -> None:
+async def test_user_step_success(
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
+) -> None:
     """Test a successful user initiated flow."""
 
     result = await _start_user_flow(hass)
@@ -86,7 +92,7 @@ async def test_user_step_success(hass, mock_projector_client_validate: AsyncMock
 
 
 async def test_user_step_defaults_title_when_name_missing(
-    hass, mock_projector_client_validate: AsyncMock
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
 ) -> None:
     """Test that the default title is used when the name is omitted."""
 
@@ -105,7 +111,7 @@ async def test_user_step_defaults_title_when_name_missing(
 
 
 async def test_user_step_cannot_connect(
-    hass, mock_projector_client_validate: AsyncMock
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
 ) -> None:
     """Test handling when the projector cannot be reached."""
 
@@ -122,7 +128,7 @@ async def test_user_step_cannot_connect(
 
 
 async def test_import_step_success(
-    hass, mock_projector_client_validate: AsyncMock
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
 ) -> None:
     """Test importing configuration from YAML."""
 
@@ -142,7 +148,7 @@ async def test_import_step_success(
 
 
 async def test_import_step_cannot_connect(
-    hass, mock_projector_client_validate: AsyncMock
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
 ) -> None:
     """Test aborting the import when the projector is unreachable."""
 
@@ -159,7 +165,7 @@ async def test_import_step_cannot_connect(
 
 
 async def test_flow_aborts_when_projector_already_configured(
-    hass, mock_projector_client_validate: AsyncMock
+    hass: HomeAssistant, mock_projector_client_validate: AsyncMock
 ) -> None:
     """Test aborting when attempting to configure the same projector twice."""
 

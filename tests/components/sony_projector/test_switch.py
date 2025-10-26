@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
-from homeassistant.components.sony_projector import SonyProjectorRuntimeData
-from homeassistant.components.sony_projector.client import (
-    ProjectorClientError,
-    ProjectorState,
-)
+import pytest
+
+from homeassistant.components import sony_projector
 from homeassistant.components.sony_projector.const import (
     CONF_TITLE,
     DATA_YAML_SWITCH_HOSTS,
@@ -20,12 +18,15 @@ from homeassistant.components.sony_projector.switch import (
     async_setup_platform,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from tests.common import MockConfigEntry
 
 
-async def test_async_setup_platform_tracks_yaml_hosts_and_imports(hass, caplog) -> None:
+async def test_async_setup_platform_tracks_yaml_hosts_and_imports(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test YAML switch setup tracks hosts and triggers an import flow."""
 
     hass.config_entries.flow.async_init = AsyncMock(return_value=None)
@@ -49,7 +50,9 @@ async def test_async_setup_platform_tracks_yaml_hosts_and_imports(hass, caplog) 
     assert mock_issue.call_count == 1
 
 
-async def test_async_setup_entry_adds_compat_switch_when_yaml_present(hass) -> None:
+async def test_async_setup_entry_adds_compat_switch_when_yaml_present(
+    hass: HomeAssistant,
+) -> None:
     """Test the compatibility switch is created when YAML for the host remains."""
 
     hass.data.setdefault(DOMAIN, {})[DATA_YAML_SWITCH_HOSTS] = {"1.2.3.4"}
@@ -59,7 +62,7 @@ async def test_async_setup_entry_adds_compat_switch_when_yaml_present(hass) -> N
     )
     entry.add_to_hass(hass)
     client = AsyncMock()
-    entry.runtime_data = SonyProjectorRuntimeData(client=client)
+    entry.runtime_data = sony_projector.SonyProjectorRuntimeData(client=client)
 
     added_entities: list[SonyProjectorCompatSwitch] = []
 
@@ -74,7 +77,9 @@ async def test_async_setup_entry_adds_compat_switch_when_yaml_present(hass) -> N
     assert entity.unique_id == "1.2.3.4-switch"
 
 
-async def test_async_setup_entry_removes_entity_when_yaml_missing(hass) -> None:
+async def test_async_setup_entry_removes_entity_when_yaml_missing(
+    hass: HomeAssistant,
+) -> None:
     """Test stale compatibility switches are removed when YAML is gone."""
 
     hass.data.setdefault(DOMAIN, {})[DATA_YAML_SWITCH_HOSTS] = set()
@@ -84,7 +89,7 @@ async def test_async_setup_entry_removes_entity_when_yaml_missing(hass) -> None:
     )
     entry.add_to_hass(hass)
     client = AsyncMock()
-    entry.runtime_data = SonyProjectorRuntimeData(client=client)
+    entry.runtime_data = sony_projector.SonyProjectorRuntimeData(client=client)
 
     registry = er.async_get(hass)
     entity_entry = registry.async_get_or_create(
@@ -118,7 +123,9 @@ async def test_async_setup_entry_removes_entity_when_yaml_missing(hass) -> None:
     assert mock_delete.call_count == 0
 
 
-async def test_compat_switch_updates_and_controls_projector(hass) -> None:
+async def test_compat_switch_updates_and_controls_projector(
+    hass: HomeAssistant,
+) -> None:
     """Test the compatibility switch proxies projector state and control."""
 
     entry = MockConfigEntry(
@@ -126,7 +133,9 @@ async def test_compat_switch_updates_and_controls_projector(hass) -> None:
         data={CONF_HOST: "1.2.3.4", CONF_TITLE: "Legacy"},
     )
     client = AsyncMock()
-    client.async_get_state.return_value = ProjectorState(is_on=True)
+    client.async_get_state.return_value = sony_projector.client.ProjectorState(
+        is_on=True
+    )
 
     entity = SonyProjectorCompatSwitch(entry, client)
 
@@ -140,13 +149,15 @@ async def test_compat_switch_updates_and_controls_projector(hass) -> None:
     assert entity.is_on is False
 
     client.async_set_power.reset_mock()
-    client.async_set_power.side_effect = ProjectorClientError
+    client.async_set_power.side_effect = sony_projector.client.ProjectorClientError
     await entity.async_turn_on()
     assert entity.available is False
     assert client.async_set_power.await_args_list[0] == call(True)
 
 
-async def test_compat_switch_async_added_to_hass_creates_issue(hass) -> None:
+async def test_compat_switch_async_added_to_hass_creates_issue(
+    hass: HomeAssistant,
+) -> None:
     """Test the compatibility switch surfaces a migration hint when referenced."""
 
     entry = MockConfigEntry(
