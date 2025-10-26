@@ -1,7 +1,5 @@
 """Tests for the Sony Projector config flow."""
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -1,7 +1,5 @@
 """Tests for the Sony Projector media player platform."""
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, call
 
 import pytest

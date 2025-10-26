@@ -1,7 +1,5 @@
 """Tests for the Sony Projector compatibility switch platform."""
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
