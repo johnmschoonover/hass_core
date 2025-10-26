@@ -5,3 +5,4 @@
 - Use the shared `conftest.py` stub for `pysdcp` so tests never import the real dependency or duplicate stubbing logic.
 - When asserting repairs issues, inspect the awaited call arguments (for example, `mock_issue.await_args`) instead of relying on private attributes.
 - Annotate Home Assistant fixtures (for example, `hass: HomeAssistant`, `caplog: pytest.LogCaptureFixture`) so `pylint`'s custom plugins accept the tests without extra disables.
+- Include a brief module-level docstring summarizing each test module's focus to keep pylint and future contributors aligned on the coverage intent.

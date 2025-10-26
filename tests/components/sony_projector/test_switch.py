@@ -1,4 +1,4 @@
-"""Tests for the Sony Projector switch platform."""
+"""Tests for the Sony Projector compatibility switch platform."""
 
 from __future__ import annotations
 
