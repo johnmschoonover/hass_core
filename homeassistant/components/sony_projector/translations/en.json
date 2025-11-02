@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Integration",
+        "description": "Reconnect to the projector at {host}."
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "already_in_progress": "The flow is already in progress",
+      "reauth_successful": "Reauthentication was successful",
+      "unknown": "Unexpected error"
+    }
+  }
+}
