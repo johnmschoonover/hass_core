@@ -5,10 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from homeassistant import config_entries
-from homeassistant.components.sony_projector.config_flow import (
-    DEFAULT_TITLE,
-    DOMAIN,
-)
+from homeassistant.components.sony_projector.config_flow import DEFAULT_TITLE, DOMAIN
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType

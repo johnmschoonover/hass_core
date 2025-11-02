@@ -30,7 +30,7 @@ async def _async_validate_input(hass: HomeAssistant, data: Mapping[str, Any]) ->
         raise CannotConnect from err
     except OSError as err:
         raise CannotConnect from err
-    except Exception as err:  # noqa: BLE001
+    except Exception as err:
         raise UnknownError from err
 
 
