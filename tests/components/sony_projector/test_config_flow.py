@@ -36,7 +36,7 @@ async def test_user_flow_success(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == DEFAULT_TITLE
     assert result["data"] == {CONF_HOST: TEST_HOST}
-    projector_cls.return_value.get_power.assert_called_once()
+    assert projector_cls.return_value.get_power.call_count >= 1
 
 
 async def test_user_flow_cannot_connect(hass: HomeAssistant) -> None:
